@@ -124,7 +124,8 @@ def server_delete(request, pk):
 def install_script(request, token):
     """Serve a bash install script with the agent embedded. No auth required."""
     server = get_object_or_404(Server, enrollment_token=token)
-    scheme = 'wss' if request.is_secure() else 'ws'
+    is_secure = request.is_secure() or request.headers.get('X-Forwarded-Proto') == 'https'
+    scheme = 'wss' if is_secure else 'ws'
     ws_url = f"{scheme}://{request.get_host()}/ws/agent/"
 
     script = f"""#!/bin/bash
