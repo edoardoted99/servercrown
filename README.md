@@ -1,14 +1,14 @@
-# VPSHub
+# ServerCrown
 
 A self-hosted control plane for managing all your servers from a single dashboard.
 
-VPSHub uses an **agent-based architecture**: install a lightweight agent on each server, and manage everything from a central web hub — real-time metrics, web terminal, command execution, and alerts.
+ServerCrown uses an **agent-based architecture**: install a lightweight agent on each server, and manage everything from a central web hub — real-time metrics, web terminal, command execution, and alerts.
 
 ## How It Works
 
 ```
                         ┌──────────────────────────────┐
-                        │           VPSHub Hub         │
+                        │        ServerCrown (Crown)       │
                         │                              │
                         │  ┌────────┐  ┌────────────┐  │
                         │  │  Web   │  │  Backend    │  │

@@ -1,8 +1,8 @@
-# VPSHub — Whitepaper
+# ServerCrown — Whitepaper
 
 ## Abstract
 
-VPSHub is a self-hosted, open-source platform for centralized management of remote servers. It adopts an agent-based architecture: a lightweight agent runs on each target server, while a central hub provides a unified web interface for monitoring, command execution, and administration. The goal is to give individuals and small teams a simple, secure, and real-time control plane for all their infrastructure.
+ServerCrown is a self-hosted, open-source platform for centralized management of remote servers. It adopts an agent-based architecture: a lightweight agent runs on each target server, while a central hub provides a unified web interface for monitoring, command execution, and administration. The goal is to give individuals and small teams a simple, secure, and real-time control plane for all their infrastructure.
 
 ---
 
@@ -16,7 +16,7 @@ Managing multiple VPS and remote servers is a fragmented experience. System admi
 - **Delayed incident detection**: without active monitoring, a server can go down unnoticed for hours.
 - **Context switching**: jumping between terminals, monitoring tools, and documentation to manage infrastructure.
 
-Existing solutions are either enterprise-grade and complex (Ansible Tower, Teleport, Rancher) or limited to monitoring only (Netdata, Uptime Kuma). VPSHub aims to fill the gap: a lightweight, all-in-one tool for personal and small-scale server management.
+Existing solutions are either enterprise-grade and complex (Ansible Tower, Teleport, Rancher) or limited to monitoring only (Netdata, Uptime Kuma). ServerCrown aims to fill the gap: a lightweight, all-in-one tool for personal and small-scale server management.
 
 ---
 
@@ -26,7 +26,7 @@ The system is composed of two distinct components that communicate over a persis
 
 ```
                         ┌──────────────────────────────┐
-                        │           VPSHub Hub         │
+                        │        ServerCrown (Crown)       │
                         │                              │
                         │  ┌────────┐  ┌────────────┐  │
                         │  │  Web   │  │  Backend    │  │
@@ -66,7 +66,7 @@ The agent is a single, statically compiled binary that runs as a systemd service
 
 - Single binary, no runtime dependencies.
 - Minimal resource footprint: < 20 MB RAM, negligible CPU at idle.
-- Runs as a dedicated unprivileged user (`vpshub-agent`), with optional sudo escalation for administrative commands.
+- Runs as a dedicated unprivileged user (`servercrown-agent`), with optional sudo escalation for administrative commands.
 - Connects outbound to the hub (no inbound ports required on the target server).
 
 ### 2.2 Hub (Central Server)
@@ -253,22 +253,22 @@ curl -sSL https://your-hub-address/install.sh | bash -s -- --token <enrollment-t
 
 ## 7. Deployment Model
 
-VPSHub is designed to be self-hosted. The hub runs on a single server (or even locally) and agents connect outbound to it.
+ServerCrown is designed to be self-hosted. The hub runs on a single server (or even locally) and agents connect outbound to it.
 
 ### Hub Deployment
 
 ```yaml
 # docker-compose.yml
 services:
-  vpshub:
-    image: vpshub/hub:latest
+  servercrown:
+    image: servercrown/crown:latest
     ports:
       - "3000:3000"
     volumes:
       - ./data:/app/data    # SQLite database
     environment:
-      - VPSHUB_SECRET=<random-secret>
-      - VPSHUB_DOMAIN=hub.example.com
+      - SERVERCROWN_SECRET=<random-secret>
+      - SERVERCROWN_DOMAIN=hub.example.com
 ```
 
 ### Agent Installation
@@ -280,7 +280,7 @@ curl -sSL https://hub.example.com/install.sh | bash -s -- --token <token>
 
 The install script:
 1. Downloads the correct agent binary for the platform.
-2. Creates a `vpshub-agent` system user.
+2. Creates a `servercrown-agent` system user.
 3. Installs a systemd service.
 4. Configures the hub URL and enrollment token.
 5. Starts the agent.
@@ -319,4 +319,4 @@ The install script:
 
 ## 9. Conclusion
 
-VPSHub aims to be the simplest way to manage a personal fleet of servers. By using an agent-based architecture, it eliminates the complexity of SSH key distribution, avoids inbound firewall requirements on targets, and enables real-time monitoring without polling overhead. The project prioritizes simplicity, security, and a smooth self-hosting experience.
+ServerCrown aims to be the simplest way to manage a personal fleet of servers. By using an agent-based architecture, it eliminates the complexity of SSH key distribution, avoids inbound firewall requirements on targets, and enables real-time monitoring without polling overhead. The project prioritizes simplicity, security, and a smooth self-hosting experience.
