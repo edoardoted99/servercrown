@@ -7,10 +7,29 @@ VPSHub uses an **agent-based architecture**: install a lightweight agent on each
 ## How It Works
 
 ```
-┌─────────────┐       wss://        ┌─────────────────────┐
-│   Agent      │ ──────────────────► │       Hub           │
-│  (your VPS)  │  metrics, commands  │  (web dashboard)    │
-└─────────────┘                      └─────────────────────┘
+                        ┌──────────────────────────────┐
+                        │           VPSHub Hub         │
+                        │                              │
+                        │  ┌────────┐  ┌────────────┐  │
+                        │  │  Web   │  │  Backend    │  │
+                        │  │  UI    │  │  API        │  │
+                        │  └───┬────┘  └─────┬──────┘  │
+                        │      │             │         │
+                        │      └──────┬──────┘         │
+                        │             │                │
+                        │       ┌─────┴─────┐          │
+                        │       │ WebSocket │          │
+                        │       │  Server   │          │
+                        │       └─────┬─────┘          │
+                        │             │                │
+                        └─────────────┼────────────────┘
+                                      │
+                    ┌─────────────────┼─────────────────┐
+                    │                 │                  │
+              ┌─────┴─────┐    ┌─────┴─────┐     ┌─────┴─────┐
+              │  Agent A  │    │  Agent B  │     │  Agent C  │
+              │ (server1) │    │ (server2) │     │ (server3) │
+              └───────────┘    └───────────┘     └───────────┘
 ```
 
 - The **agent** is a single binary that runs on each target server. It collects system metrics, sends heartbeats, and executes commands received from the hub.
@@ -51,10 +70,10 @@ The agent installs itself, connects to the hub, and your server appears on the d
 | Component | Tech | Role |
 |-----------|------|------|
 | Agent | Go | Metrics collection, command execution, PTY proxy |
-| Hub Backend | Node.js + Next.js | API, WebSocket server, agent management |
-| Hub Frontend | React + Tailwind | Dashboard, terminal, administration |
-| Database | SQLite | Server registry, metrics, configuration |
-| Terminal | xterm.js | Browser-based interactive shell |
+| Hub Backend | Django + Django Channels | Views, WebSocket server, agent management |
+| Hub Frontend | htmx + Tailwind | Reactive server-rendered UI, dashboard, administration |
+| Database | SQLite / PostgreSQL | Server registry, metrics, configuration |
+| Terminal | xterm.js | Browser-based interactive shell (only JS dependency) |
 
 ## Security
 
