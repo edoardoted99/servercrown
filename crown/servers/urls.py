@@ -7,6 +7,7 @@ urlpatterns = [
     path('servers/<int:pk>/', views.server_detail, name='server_detail'),
     path('servers/<int:pk>/edit/', views.server_edit, name='server_edit'),
     path('servers/<int:pk>/delete/', views.server_delete, name='server_delete'),
+    path('install/<str:token>', views.install_script, name='install_script'),
     # domains
     path('domains/add/', views.domain_add_global, name='domain_add_global'),
     path('servers/<int:server_pk>/domains/add/', views.domain_add, name='domain_add'),

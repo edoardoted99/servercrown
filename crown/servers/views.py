@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from django.contrib.auth.decorators import login_required
 from django.db.models import Subquery, OuterRef
 from django.shortcuts import render, get_object_or_404, redirect
@@ -5,6 +7,8 @@ from django.http import HttpResponse
 from django.utils import timezone
 
 from .models import Server, Metric, Domain
+
+AGENT_PY = (Path(__file__).resolve().parent.parent.parent / 'agent' / 'agent.py').read_text()
 
 
 @login_required
@@ -113,6 +117,74 @@ def server_delete(request, pk):
             return HttpResponse(status=200, headers={'HX-Redirect': '/'})
         return redirect('dashboard')
     return render(request, 'servers/server_delete.html', {'server': server})
+
+
+# --- Install script ---
+
+def install_script(request, token):
+    """Serve a bash install script with the agent embedded. No auth required."""
+    server = get_object_or_404(Server, enrollment_token=token)
+    scheme = 'wss' if request.is_secure() else 'ws'
+    ws_url = f"{scheme}://{request.get_host()}/ws/agent/"
+
+    script = f"""#!/bin/bash
+set -e
+
+INSTALL_DIR="/opt/servercrown-agent"
+WS_URL="{ws_url}"
+TOKEN="{token}"
+
+echo "[*] Installing ServerCrown Agent..."
+
+# Install Python3 + pip
+if command -v apt-get &>/dev/null; then
+    apt-get update -qq && apt-get install -y -qq python3 python3-pip python3-venv > /dev/null 2>&1
+elif command -v dnf &>/dev/null; then
+    dnf install -y -q python3 python3-pip > /dev/null 2>&1
+elif command -v yum &>/dev/null; then
+    yum install -y -q python3 python3-pip > /dev/null 2>&1
+fi
+
+# Create install dir
+mkdir -p "$INSTALL_DIR"
+
+# Create venv and install deps
+python3 -m venv "$INSTALL_DIR/venv"
+"$INSTALL_DIR/venv/bin/pip" install --quiet psutil websockets
+
+# Write agent script
+cat > "$INSTALL_DIR/agent.py" << 'AGENT_SCRIPT'
+{AGENT_PY}
+AGENT_SCRIPT
+
+# Create systemd service
+cat > /etc/systemd/system/servercrown-agent.service << SVCEOF
+[Unit]
+Description=ServerCrown Agent
+After=network.target
+
+[Service]
+Type=simple
+Environment=CROWN_SERVER_URL=$WS_URL
+Environment=CROWN_TOKEN=$TOKEN
+Environment=CROWN_INTERVAL=10
+Environment=PYTHONUNBUFFERED=1
+ExecStart=$INSTALL_DIR/venv/bin/python $INSTALL_DIR/agent.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+SVCEOF
+
+systemctl daemon-reload
+systemctl enable servercrown-agent
+systemctl restart servercrown-agent
+
+echo "[*] ServerCrown Agent installed and running!"
+echo "[*] Check status: systemctl status servercrown-agent"
+"""
+    return HttpResponse(script, content_type='text/plain')
 
 
 # --- Domains ---
