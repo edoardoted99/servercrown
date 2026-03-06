@@ -1,4 +1,4 @@
-# ServerCrown
+# server👑crown 
 
 A self-hosted control plane for managing all your servers from a single dashboard.
 
