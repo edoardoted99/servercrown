@@ -7,29 +7,18 @@ ServerCrown uses an **agent-based architecture**: install a lightweight agent on
 ## How It Works
 
 ```
-                        ┌──────────────────────────────┐
-                        │        ServerCrown (Crown)       │
-                        │                              │
-                        │  ┌────────┐  ┌────────────┐  │
-                        │  │  Web   │  │  Backend    │  │
-                        │  │  UI    │  │  API        │  │
-                        │  └───┬────┘  └─────┬──────┘  │
-                        │      │             │         │
-                        │      └──────┬──────┘         │
-                        │             │                │
-                        │       ┌─────┴─────┐          │
-                        │       │ WebSocket │          │
-                        │       │  Server   │          │
-                        │       └─────┬─────┘          │
-                        │             │                │
-                        └─────────────┼────────────────┘
-                                      │
-                    ┌─────────────────┼─────────────────┐
-                    │                 │                  │
-              ┌─────┴─────┐    ┌─────┴─────┐     ┌─────┴─────┐
-              │  Agent A  │    │  Agent B  │     │  Agent C  │
-              │ (server1) │    │ (server2) │     │ (server3) │
-              └───────────┘    └───────────┘     └───────────┘
+  ┌─────────────────── ServerCrown (Crown) ───────────────────┐
+  │                                                           │
+  │   Web UI (htmx) ──► Django Backend ──► WebSocket Server   │
+  │                                                           │
+  └──────────────────────────┬────────────────────────────────┘
+                             │
+              ┌──────────────┼──────────────┐
+              │              │              │
+        ┌─────┴─────┐ ┌─────┴─────┐ ┌─────┴─────┐
+        │  Agent A  │ │  Agent B  │ │  Agent C  │
+        │ (server1) │ │ (server2) │ │ (server3) │
+        └───────────┘ └───────────┘ └───────────┘
 ```
 
 - The **agent** is a single binary that runs on each target server. It collects system metrics, sends heartbeats, and executes commands received from the hub.
