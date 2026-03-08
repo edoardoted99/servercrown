@@ -1,0 +1,219 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ServerCrown - Manage all your servers from one place</title>
+    <link rel="icon" type="image/svg+xml" href="{% static 'favicon.svg' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        crown: {
+                            50: '#fdf8e8',
+                            100: '#faefc5',
+                            200: '#f5df8e',
+                            300: '#edc94d',
+                            400: '#e4b520',
+                            500: '#d4a017',
+                            600: '#a67c12',
+                            700: '#7a5b11',
+                            800: '#524013',
+                            900: '#2d2310',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glow { text-shadow: 0 0 30px rgba(228, 181, 32, 0.3); }
+        .card-glow { box-shadow: 0 0 0 1px rgba(228, 181, 32, 0.1); }
+        .card-glow:hover { box-shadow: 0 0 20px rgba(228, 181, 32, 0.08), 0 0 0 1px rgba(228, 181, 32, 0.2); }
+        .hero-gradient { background: radial-gradient(ellipse at top, rgba(228, 181, 32, 0.06) 0%, transparent 60%); }
+        .grid-bg {
+            background-image:
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+        @keyframes pulse-slow { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .pulse-slow { animation: pulse-slow 2s ease-in-out infinite; }
+    </style>
+</head>
+<body class="bg-gray-950 text-gray-100">
+
+    <!-- Nav -->
+    <nav class="border-b border-gray-800/50 bg-gray-950/80 backdrop-blur-xl sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-2 text-lg font-bold text-crown-400">
+                <span class="text-2xl">👑</span>
+                <span>ServerCrown</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="https://github.com/edoardoted99/servercrown" target="_blank"
+                   class="text-gray-400 hover:text-gray-200 text-sm transition">GitHub</a>
+                {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}"
+                   class="bg-crown-500 hover:bg-crown-600 text-gray-900 font-semibold px-5 py-2 rounded-lg text-sm transition">
+                    Dashboard
+                </a>
+                {% else %}
+                <a href="{% url 'login' %}"
+                   class="bg-crown-500 hover:bg-crown-600 text-gray-900 font-semibold px-5 py-2 rounded-lg text-sm transition">
+                    Sign in
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero-gradient grid-bg">
+        <div class="max-w-6xl mx-auto px-6 pt-24 pb-20 text-center">
+            <div class="text-6xl mb-6">👑</div>
+            <h1 class="text-4xl md:text-5xl font-bold mb-4 glow">
+                <span class="text-crown-400">One dashboard</span> for all your servers
+            </h1>
+            <p class="text-lg text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+                Install a lightweight agent on each server with a single command.
+                Get real-time metrics, domain tracking, and full control from one place.
+            </p>
+            <div class="flex items-center justify-center gap-4">
+                <a href="https://github.com/edoardoted99/servercrown" target="_blank"
+                   class="bg-crown-500 hover:bg-crown-600 text-gray-900 font-semibold px-8 py-3 rounded-lg transition text-base">
+                    Get Started
+                </a>
+                <a href="#features"
+                   class="border border-gray-700 hover:border-gray-500 text-gray-300 font-medium px-8 py-3 rounded-lg transition text-base">
+                    Learn more
+                </a>
+            </div>
+
+            <!-- Terminal preview -->
+            <div class="mt-16 max-w-2xl mx-auto">
+                <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden text-left">
+                    <div class="flex items-center gap-2 px-4 py-3 border-b border-gray-800">
+                        <span class="w-3 h-3 rounded-full bg-red-500/80"></span>
+                        <span class="w-3 h-3 rounded-full bg-yellow-500/80"></span>
+                        <span class="w-3 h-3 rounded-full bg-green-500/80"></span>
+                        <span class="ml-2 text-xs text-gray-500">terminal</span>
+                    </div>
+                    <div class="p-5 font-mono text-sm">
+                        <p class="text-gray-500">$ # Deploy the crown</p>
+                        <p class="text-gray-300">$ git clone https://github.com/edoardoted99/servercrown.git</p>
+                        <p class="text-gray-300">$ cd servercrown && docker compose up -d</p>
+                        <p class="text-gray-500 mt-3">$ # Add a server — one command</p>
+                        <p class="text-crown-400">$ curl -sSL https://your-crown/install/&lt;token&gt; | bash</p>
+                        <p class="text-green-400 mt-1">&#10003; ServerCrown Agent installed and running!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features" class="py-20 border-t border-gray-800/50">
+        <div class="max-w-6xl mx-auto px-6">
+            <h2 class="text-2xl font-bold text-center mb-3">Everything you need</h2>
+            <p class="text-gray-500 text-center mb-14 max-w-lg mx-auto">
+                Self-hosted, lightweight, and built for developers who manage multiple servers.
+            </p>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-6 card-glow transition-all duration-300">
+                    <div class="text-2xl mb-3">📊</div>
+                    <h3 class="font-semibold text-gray-100 mb-2">Real-time metrics</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed">
+                        CPU, RAM, disk usage and uptime — streamed live via WebSocket. No polling, no delays.
+                    </p>
+                </div>
+
+                <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-6 card-glow transition-all duration-300">
+                    <div class="text-2xl mb-3">⚡</div>
+                    <h3 class="font-semibold text-gray-100 mb-2">One-command install</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed">
+                        Add a server and get a curl command. Run it on your server — agent installs, connects, done.
+                    </p>
+                </div>
+
+                <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-6 card-glow transition-all duration-300">
+                    <div class="text-2xl mb-3">🌐</div>
+                    <h3 class="font-semibold text-gray-100 mb-2">Domain tracking</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed">
+                        Add domains, DNS resolves automatically and matches them to the right server by IP.
+                    </p>
+                </div>
+
+                <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-6 card-glow transition-all duration-300">
+                    <div class="text-2xl mb-3">🔒</div>
+                    <h3 class="font-semibold text-gray-100 mb-2">Self-hosted</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed">
+                        Your data stays on your infrastructure. No third-party services, no telemetry.
+                    </p>
+                </div>
+
+                <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-6 card-glow transition-all duration-300">
+                    <div class="text-2xl mb-3">🔌</div>
+                    <h3 class="font-semibold text-gray-100 mb-2">Outbound-only agents</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed">
+                        Agents connect outbound to the crown — no inbound ports needed on your servers.
+                    </p>
+                </div>
+
+                <div class="bg-gray-900/50 border border-gray-800 rounded-xl p-6 card-glow transition-all duration-300">
+                    <div class="text-2xl mb-3">🪶</div>
+                    <h3 class="font-semibold text-gray-100 mb-2">Lightweight stack</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed">
+                        Django + htmx + Tailwind. No heavy JS framework. Fast, reactive, minimal footprint.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture -->
+    <section class="py-20 border-t border-gray-800/50">
+        <div class="max-w-6xl mx-auto px-6 text-center">
+            <h2 class="text-2xl font-bold mb-3">Simple architecture</h2>
+            <p class="text-gray-500 mb-12 max-w-lg mx-auto">
+                One crown, many agents. Each agent reports metrics via a persistent WebSocket connection.
+            </p>
+            <div class="max-w-2xl mx-auto bg-gray-900/50 border border-gray-800 rounded-xl p-8 font-mono text-sm">
+                <pre class="text-gray-400 leading-relaxed"><span class="text-crown-400">Crown</span> (Django + Daphne)
+  │
+  ├── WebSocket ←── <span class="text-green-400">Agent A</span> (server1)
+  ├── WebSocket ←── <span class="text-green-400">Agent B</span> (server2)
+  └── WebSocket ←── <span class="text-green-400">Agent C</span> (server3)</pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="py-20 border-t border-gray-800/50 hero-gradient">
+        <div class="max-w-6xl mx-auto px-6 text-center">
+            <h2 class="text-2xl font-bold mb-3">Ready to take control?</h2>
+            <p class="text-gray-500 mb-8 max-w-md mx-auto">
+                Deploy ServerCrown in minutes and manage all your servers from a single dashboard.
+            </p>
+            <a href="https://github.com/edoardoted99/servercrown" target="_blank"
+               class="inline-block bg-crown-500 hover:bg-crown-600 text-gray-900 font-semibold px-8 py-3 rounded-lg transition">
+                View on GitHub
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-800/50 py-8">
+        <div class="max-w-6xl mx-auto px-6 flex items-center justify-between text-sm text-gray-600">
+            <span>ServerCrown — MIT License</span>
+            <a href="https://github.com/edoardoted99/servercrown" target="_blank" class="hover:text-gray-400 transition">GitHub</a>
+        </div>
+    </footer>
+
+</body>
+</html>

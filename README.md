@@ -4,7 +4,7 @@ A self-hosted control plane for managing all your servers from a single dashboar
 
 Install a lightweight agent on each server with a single command — real-time metrics, domain tracking, and server management from one place.
 
-**Live demo:** [servercrown.it](https://servercrown.it)
+**Live demo:** [servercrown.org](https://servercrown.org)
 
 ## Screenshots
 

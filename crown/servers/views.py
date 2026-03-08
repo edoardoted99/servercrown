@@ -11,6 +11,12 @@ from .models import Server, Metric, Domain
 AGENT_PY = (Path(__file__).resolve().parent.parent.parent / 'agent' / 'agent.py').read_text()
 
 
+def home(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    return render(request, 'home.html')
+
+
 @login_required
 def dashboard(request):
     latest_metric = Metric.objects.filter(

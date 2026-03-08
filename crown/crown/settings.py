@@ -124,7 +124,7 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 # Channels
 ASGI_APPLICATION = 'crown.asgi.application'
 LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = 'login'
 
 CHANNEL_LAYERS = {
