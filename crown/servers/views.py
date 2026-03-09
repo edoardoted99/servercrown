@@ -1,10 +1,12 @@
+import json
 from pathlib import Path
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Subquery, OuterRef
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
 
 from .models import Server, Metric, Domain
 
@@ -125,20 +127,95 @@ def server_delete(request, pk):
     return render(request, 'servers/server_delete.html', {'server': server})
 
 
+# --- Agent HTTP API (fallback for networks that block WebSocket) ---
+
+@csrf_exempt
+def api_agent_enroll(request):
+    if request.method != 'POST':
+        return JsonResponse({'type': 'error', 'message': 'POST required'}, status=405)
+    data = json.loads(request.body)
+    token = data.get('token', '')
+    client_ip = (
+        request.headers.get('X-Real-IP')
+        or (request.headers.get('X-Forwarded-For', '').split(',')[0].strip() or None)
+        or request.META.get('REMOTE_ADDR')
+    )
+    try:
+        server = Server.objects.get(enrollment_token=token)
+    except Server.DoesNotExist:
+        return JsonResponse({'type': 'error', 'message': 'Invalid enrollment token'}, status=401)
+    server.status = Server.Status.ONLINE
+    server.enrolled_at = timezone.now()
+    server.last_seen = timezone.now()
+    if client_ip:
+        server.ip_address = client_ip
+    server.save()
+    if server.ip_address:
+        Domain.objects.filter(
+            resolved_ip=server.ip_address, server__isnull=True
+        ).update(server=server, status=Domain.Status.MATCHED)
+    return JsonResponse({'type': 'enrolled', 'server_id': server.id})
+
+
+@csrf_exempt
+def api_agent_metrics(request):
+    if request.method != 'POST':
+        return JsonResponse({'type': 'error', 'message': 'POST required'}, status=405)
+    data = json.loads(request.body)
+    token = data.get('token', '')
+    payload = data.get('payload', {})
+    try:
+        server = Server.objects.get(enrollment_token=token)
+    except Server.DoesNotExist:
+        return JsonResponse({'type': 'error', 'message': 'Invalid token'}, status=401)
+    server.last_seen = timezone.now()
+    server.status = Server.Status.ONLINE
+    server.save(update_fields=['last_seen', 'status'])
+    Metric.objects.create(
+        server=server,
+        cpu_percent=payload.get('cpu_percent', 0),
+        memory_percent=payload.get('memory_percent', 0),
+        memory_used_mb=payload.get('memory_used_mb', 0),
+        memory_total_mb=payload.get('memory_total_mb', 0),
+        disk_percent=payload.get('disk_percent', 0),
+        disk_used_gb=payload.get('disk_used_gb', 0),
+        disk_total_gb=payload.get('disk_total_gb', 0),
+        load_1m=payload.get('load_1m', 0),
+        load_5m=payload.get('load_5m', 0),
+        load_15m=payload.get('load_15m', 0),
+        uptime_seconds=payload.get('uptime_seconds', 0),
+    )
+    return JsonResponse({'type': 'ok'})
+
+
 # --- Install script ---
 
 def install_script(request, token):
     """Serve a bash install script with the agent embedded. No auth required."""
+    from django.conf import settings as django_settings
     server = get_object_or_404(Server, enrollment_token=token)
-    is_secure = request.is_secure() or request.headers.get('X-Forwarded-Proto') == 'https'
-    scheme = 'wss' if is_secure else 'ws'
-    ws_url = f"{scheme}://{request.get_host()}/ws/agent/"
+
+    crown_url = django_settings.CROWN_URL
+    if crown_url:
+        # Derive URLs from configured CROWN_URL
+        is_secure = crown_url.startswith('https')
+        host = crown_url.split('://')[1].rstrip('/')
+    else:
+        # Fallback: derive from request
+        is_secure = request.is_secure() or request.headers.get('X-Forwarded-Proto') == 'https'
+        host = request.get_host()
+
+    ws_scheme = 'wss' if is_secure else 'ws'
+    http_scheme = 'https' if is_secure else 'http'
+    ws_url = f"{ws_scheme}://{host}/ws/agent/"
+    http_url = f"{http_scheme}://{host}/api/agent"
 
     script = f"""#!/bin/bash
 set -e
 
 INSTALL_DIR="/opt/servercrown-agent"
 WS_URL="{ws_url}"
+HTTP_URL="{http_url}"
 TOKEN="{token}"
 
 echo "[*] Installing ServerCrown Agent..."
@@ -173,6 +250,8 @@ After=network.target
 [Service]
 Type=simple
 Environment=CROWN_SERVER_URL=$WS_URL
+# If WebSocket is blocked by your network, switch to HTTP mode:
+# Environment=CROWN_SERVER_URL=$HTTP_URL
 Environment=CROWN_TOKEN=$TOKEN
 Environment=CROWN_INTERVAL=10
 Environment=PYTHONUNBUFFERED=1

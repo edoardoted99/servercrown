@@ -9,6 +9,9 @@ urlpatterns = [
     path('servers/<int:pk>/edit/', views.server_edit, name='server_edit'),
     path('servers/<int:pk>/delete/', views.server_delete, name='server_delete'),
     path('install/<str:token>', views.install_script, name='install_script'),
+    # Agent HTTP API (fallback for networks that block WebSocket)
+    path('api/agent/enroll/', views.api_agent_enroll, name='api_agent_enroll'),
+    path('api/agent/metrics/', views.api_agent_metrics, name='api_agent_metrics'),
     # domains
     path('domains/add/', views.domain_add_global, name='domain_add_global'),
     path('servers/<int:server_pk>/domains/add/', views.domain_add, name='domain_add'),
