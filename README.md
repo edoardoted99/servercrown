@@ -9,7 +9,7 @@ Install a lightweight agent on each server with a single command — real-time m
 ## Screenshots
 
 ### Dashboard
-![Dashboard](screens/dashboard.png)
+![Dashboard](screens/dashboard_v2.png)
 
 ### Server Detail
 ![Server Detail](screens/server1.png)
